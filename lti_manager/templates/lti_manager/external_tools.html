@@ -27,6 +27,12 @@
     <div class="inner">
         <h2>Manage External Tools</h2>
 
+        {% if not read_only %}
+        <div class="pull-right">
+            <button type="button" class="btn btn-primary add-external-tool-btn" title="Add an external tool"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add external tool</button>
+        </div>
+        {% endif %}
+
         <div class="user-manager pull-left">
             <div class="query-tabs clearfix">
                 <table id="external-tools-table" class="admin-table table table-striped">
@@ -42,9 +48,11 @@
                 </table>
             </div>
         </div>
+        <div id="external-tool-editor" class="modal fade" role="dialog"></div>
     </div>
 </div>
 {% include "handlebars/lti_manager/table_row.html" %}
+{% include "handlebars/lti_manager/editor.html" %}
 {% endblock content %}
 
 {% block extra_js %}

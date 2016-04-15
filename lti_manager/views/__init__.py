@@ -4,7 +4,13 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
 from userservice.user import UserService
+from astra.models import AdminManager
 from authz_group import Group
+
+
+def can_manage_external_tools():
+    return True
+    return AdminManager().is_account_admin(UserService().get_original_user())
 
 
 @login_required
@@ -15,5 +21,5 @@ def ManageExternalTools(request, template='lti_manager/external_tools.html'):
             user, getattr(settings, 'CANVAS_MANAGER_ADMIN_GROUP', '')):
         return HttpResponseRedirect('/')
 
-    params = {}
+    params = {'read_only': False if can_manage_external_tools() else True}
     return render_to_response(template, params, RequestContext(request))
