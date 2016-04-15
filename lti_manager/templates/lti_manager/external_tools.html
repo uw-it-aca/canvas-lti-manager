@@ -1,12 +1,59 @@
-{% extends 'canvas_admin/base.html' %}
+{% extends 'supporttools/base.html' %}
 
-{% block admin_content %}
+{% load compress %}
+{% load staticfiles %}
 
-<h2>Manage External Tools</h2>
+{% block extra_css %}
+<!-- add admin mobile styles -->
+<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css" />
+<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/plug-ins/9dcbecd42ad/integration/bootstrap/3/dataTables.bootstrap.css" />
+<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.0/css/bootstrap-toggle.min.css" rel="stylesheet">
+{% compress css %}
+<link rel="stylesheet" type="text/less" href="{% static 'canvas_admin/css/mobile.less' media='screen, handheld' %}" />
+{% endcompress %}
 
-<div class="user-manager pull-left">
-    <div class="query-tabs clearfix">
+{% if not request.is_mobile and not request.is_tablet %}
+<!-- add admin desktop styles -->
+{% compress css %}
+<link rel="stylesheet" type="text/less" href="{% static 'canvas_admin/css/desktop.less' media='screen and (min-width: 480px)' %}" />
+{% endcompress %}
+{% endif %}
+{% endblock extra_css %}
+
+{% block content %}
+{% csrf_token %}
+
+<div id="main" role="main">
+    <div class="inner">
+        <h2>Manage External Tools</h2>
+
+        <div class="user-manager pull-left">
+            <div class="query-tabs clearfix">
+                <table id="external-tools-table" class="admin-table table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Subaccounts</th>
+                        <th>Last Changed</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody class="scrollable"><tr><td colspan="5" class="waiting"><i class="fa fa-spin"></i></td></tr></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
+{% include "handlebars/lti_manager/table_row.html" %}
+{% endblock content %}
 
-{% endblock %}
+{% block extra_js %}
+<script src="//cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+<script src="//cdn.datatables.net/plug-ins/9dcbecd42ad/integration/bootstrap/3/dataTables.bootstrap.js"></script>
+<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.0/js/bootstrap-toggle.min.js"></script>
+<script src="{% static 'vendor/js/jquery-ui-1.9.2.custom.min.js' %}"></script>
+<script src="{% static 'vendor/js/moment.min.js' %}"></script>
+{% compress js %}
+<script src="{% static 'lti_manager/js/main.js' %}"></script>
+{% endcompress %}
+{% endblock extra_js %}
