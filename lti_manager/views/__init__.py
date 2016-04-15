@@ -15,4 +15,5 @@ def ManageExternalTools(request, template='lti_manager/external_tools.html'):
             user, getattr(settings, 'CANVAS_MANAGER_ADMIN_GROUP', '')):
         return HttpResponseRedirect('/')
 
+    params = {}
     return render_to_response(template, params, RequestContext(request))
