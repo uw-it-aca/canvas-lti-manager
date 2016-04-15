@@ -8,24 +8,24 @@ from datetime import datetime
 import json
 
 
+logger = getLogger(__name__)
+
+
+def can_manage_external_tools():
+    return AdminManager().is_account_admin(UserService().get_original_user())
+
+
 class ExternalToolView(RESTDispatch):
     """ Retrieves an ExternalTool model.
         GET returns 200 with ExternalTool details.
         PUT returns 200.
     """
-    def __init__(self):
-        self._log = getLogger(__name__)
-        self._can_manage_external_tools = AdminManager().is_account_admin(
-            UserService().get_original_user())
-
-
     def GET(self, request, **kwargs):
         external_tool_id = kwargs['external_tool_id']
-        read_only = False if self._can_manage_external_tools else True
         try:
             external_tool = ExternalTool.objects.get(id=external_tool_id)
             data = external_tool.json_data()
-            data['read_only'] = read_only
+            data['read_only'] = False if can_manage_external_tools() else True
             return self.json_response(json.dumps({'external_tool': data}))
         except ExternalTool.DoesNotExist:
             return self.json_response(
@@ -33,14 +33,14 @@ class ExternalToolView(RESTDispatch):
                 status=404)
 
     def PUT(self, request, **kwargs):
-        if not self._can_manage_external_tools:
+        if not can_manage_external_tools():
             return self.json_response('{"error":"Unauthorized"}', status=401)
 
         external_tool_id = kwargs['external_tool_id']
         try:
             json_data = json.loads(request.body).get('external_tool', {})
         except Exception as ex:
-            self._log.error('PUT ExternalTool error: %s' % ex)
+            logger.error('PUT ExternalTool error: %s' % ex)
             return self.json_response('{"error": "%s"}' % ex, status=400)
 
         try:
@@ -58,20 +58,20 @@ class ExternalToolView(RESTDispatch):
 
         # TODO: update Canvas
 
-        self._log.info('%s updated External Tool "%s"' % (
+        logger.info('%s updated External Tool "%s"' % (
             external_tool.changed_by, external_tool.id))
 
         return self.json_response(json.dumps({
             'external_tool': external_tool.json_data()}))
 
     def POST(self, request, **kwargs):
-        if not self._can_manage_external_tools:
+        if not can_manage_external_tools():
             return self.json_response('{"error":"Unauthorized"}', status=401)
 
         try:
             json_data = json.loads(request.body).get('external_tool', {})
         except Exception as ex:
-            self._log.error('POST ExternalTool error: %s' % ex)
+            logger.error('POST ExternalTool error: %s' % ex)
             return self.json_response('{"error": "%s"}' % ex, status=400)
 
         external_tool = ExternalTool()
@@ -83,14 +83,14 @@ class ExternalToolView(RESTDispatch):
 
         # TODO: update Canvas
 
-        self._log.info('%s added External Tool "%s"' % (
+        logger.info('%s added External Tool "%s"' % (
             external_tool.changed_by, external_tool.id))
 
         return self.json_response(json.dumps({
             'external_tool': external_tool.json_data()}))
 
     def DELETE(self, request, **kwargs):
-        if not self._can_manage_external_tools:
+        if not can_manage_external_tools():
             return self.json_response('{"error":"Unauthorized"}', status=401)
 
         external_tool_id = kwargs['external_tool_id']
@@ -100,7 +100,7 @@ class ExternalToolView(RESTDispatch):
 
             # TODO: delete from Canvas
 
-            self._log.info('%s deleted ExternalTool "%s"' % (
+            logger.info('%s deleted ExternalTool "%s"' % (
                 external_tool.changed_by, external_tool.id))
 
             return self.json_response(json.dumps({
@@ -115,9 +115,7 @@ class ExternalToolListView(RESTDispatch):
     """ Retrieves a list of ExternalTools.
     """
     def GET(self, request, **kwargs):
-        read_only = False if (AdminManager().is_account_admin(
-            UserService().get_original_user())) else True
-
+        read_only = False if can_manage_external_tools() else True
         external_tools = []
         for external_tool in ExternalTool.objects.all():
             data = external_tool.json_data()
