@@ -116,6 +116,7 @@ class ExternalToolListView(RESTDispatch):
         for external_tool in ExternalTool.objects.all():
             data = external_tool.json_data()
             data['read_only'] = read_only
+            del data['config']
             external_tools.append(data)
 
         return self.json_response(

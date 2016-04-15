@@ -9,7 +9,6 @@ from authz_group import Group
 
 
 def can_manage_external_tools():
-    return True
     return AdminManager().is_account_admin(UserService().get_original_user())
 
 
