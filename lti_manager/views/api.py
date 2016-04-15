@@ -1,18 +1,14 @@
 from django.utils.log import getLogger
 from lti_manager.models import ExternalTool, ExternalToolSubaccount
+from lti_manager.views import can_manage_external_tools
 from sis_provisioner.views.rest_dispatch import RESTDispatch
 from userservice.user import UserService
-from astra.models import AdminManager
 from django.utils.timezone import utc
 from datetime import datetime
 import json
 
 
 logger = getLogger(__name__)
-
-
-def can_manage_external_tools():
-    return AdminManager().is_account_admin(UserService().get_original_user())
 
 
 class ExternalToolView(RESTDispatch):
@@ -120,6 +116,7 @@ class ExternalToolListView(RESTDispatch):
         for external_tool in ExternalTool.objects.all():
             data = external_tool.json_data()
             data['read_only'] = read_only
+            del data['config']
             external_tools.append(data)
 
         return self.json_response(
