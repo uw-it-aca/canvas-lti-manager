@@ -4,26 +4,6 @@ import datetime
 import json
 
 
-class ExternalToolCustomField(models.Model):
-    name = models.IntegerField(max_length=100, unique=True)
-    value = models.IntegerField(max_length=100)
-
-    def json_data(self):
-        return {'id': self.pk, 'name': self.name, 'value': self.value}
-
-
-class ExternalToolSubaccount(models.Model):
-    subaccount_id = models.IntegerField(max_length=15, unique=True)
-    subaccount_sis_id = models.IntegerField(max_length=100)
-
-    def json_data(self):
-        return {
-            'id': self.pk,
-            'subaccount_id': self.subaccount_id,
-            'subaccount_sis_id': self.subaccount_sis_id
-        }
-
-
 class ExternalTool(models.Model):
     PRIVACY_ANONYMOUS = 'anonymous'
     PRIVACY_NAMEONLY = 'name_only'

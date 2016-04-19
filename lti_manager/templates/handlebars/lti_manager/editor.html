@@ -1,31 +1,14 @@
 {% load templatetag_handlebars %}
 {% tplhandlebars "tool-editor" %}
-<div class="modal-dialog">
-    <div class="modal-content">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 class="modal-title">Add External Tool</h4>
-        </div>
-        <div class="modal-body">
-            <form>
-                <div class="form-group">
-                    <label for="et-name-input">Name:</label><br/>
-                    <input id="et-name-input" type="text" name="name" value="{{ name }}"/>
-                </div>
-                <div class="form-group">
-                    <label for="et-config-input">Configuration JSON:</label><br/>
-                    <textarea id="et-config-input">{{ config }}</textarea>
-                </div>
-                <div class="form-group">
-                    <label for="et-account-input">Subaccount:</label><br/>
-                    <input id="et-account-input" type="text" name="name" value="{{ account_id }}"/>
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-primary save-btn" title="Save"><span class="glyphicon" aria-hidden="true"></span>Save</button>
-            <button type="button" class="btn btn-default cancel-btn" title="Cancel" data-dismiss="modal"><span class="glyphicon" aria-hidden="true"></span>Cancel</button>
-        </div>
+<form>
+    <div class="form-group">
+        <label for="et-config-input">Configuration JSON:</label><br/>
+        <textarea id="et-config-input">{{stringify config}}</textarea>
     </div>
-</div>
+    <div class="form-group">
+        <label for="et-account-input">Subaccount:</label><br/>
+        <input id="et-account-input" type="text" name="name" value="{{account_id}}"/>
+    </div>
+    <input id="et-id-input" type="hidden" value="{{id}}"/>
+</form>
 {% endtplhandlebars %}

@@ -8,6 +8,7 @@
 <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css" />
 <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/plug-ins/9dcbecd42ad/integration/bootstrap/3/dataTables.bootstrap.css" />
 <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.0/css/bootstrap-toggle.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="{% static 'lti_manager/css/vendor/codemirror.css' media='screen, handheld' %}" />
 {% compress css %}
 <link rel="stylesheet" type="text/less" href="{% static 'canvas_admin/css/mobile.less' media='screen, handheld' %}" />
 {% endcompress %}
@@ -29,7 +30,7 @@
 
         {% if not read_only %}
         <div class="pull-right">
-            <button type="button" class="btn btn-primary add-external-tool-btn" title="Add an external tool"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add external tool</button>
+            <button type="button" class="btn btn-primary et-add" title="Add an external tool"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add external tool</button>
         </div>
         {% endif %}
 
@@ -41,14 +42,28 @@
                         <th>Name</th>
                         <th>Subaccounts</th>
                         <th>Last Changed</th>
-                        <th>Status</th>
+                        <th></th>
                       </tr>
                     </thead>
                     <tbody class="scrollable"><tr><td colspan="5" class="waiting"><i class="fa fa-spin"></i></td></tr></tbody>
                 </table>
             </div>
         </div>
-        <div id="external-tool-editor" class="modal fade" role="dialog"></div>
+        <div id="external-tool-editor" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 id="et-modal-title" class="modal-title"></h4>
+                    </div>
+                    <div id="et-modal-body" class="modal-body"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary save-btn" title="Save"><span class="glyphicon" aria-hidden="true"></span>Save</button>
+                        <button type="button" class="btn btn-default cancel-btn" title="Cancel" data-dismiss="modal"><span class="glyphicon" aria-hidden="true"></span>Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% include "handlebars/lti_manager/table_row.html" %}
@@ -61,6 +76,9 @@
 <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.0/js/bootstrap-toggle.min.js"></script>
 <script src="{% static 'vendor/js/jquery-ui-1.9.2.custom.min.js' %}"></script>
 <script src="{% static 'vendor/js/moment.min.js' %}"></script>
+<script src="{% static 'lti_manager/js/vendor/codemirror.js' %}"></script>
+<script src="{% static 'lti_manager/js/vendor/javascript.js' %}"></script>
+<script src="{% static 'lti_manager/js/config.js' %}"></script>
 {% compress js %}
 <script src="{% static 'lti_manager/js/main.js' %}"></script>
 {% endcompress %}
