@@ -1,5 +1,5 @@
 from django.utils.log import getLogger
-from lti_manager.models import ExternalTool, ExternalToolSubaccount
+from lti_manager.models import ExternalTool
 from lti_manager.views import can_manage_external_tools
 from sis_provisioner.views.rest_dispatch import RESTDispatch
 from userservice.user import UserService
@@ -17,22 +17,22 @@ class ExternalToolView(RESTDispatch):
         PUT returns 200.
     """
     def GET(self, request, **kwargs):
-        external_tool_id = kwargs['external_tool_id']
+        tool_id = kwargs['tool_id']
         try:
-            external_tool = ExternalTool.objects.get(id=external_tool_id)
+            external_tool = ExternalTool.objects.get(id=tool_id)
             data = external_tool.json_data()
             data['read_only'] = False if can_manage_external_tools() else True
             return self.json_response(json.dumps({'external_tool': data}))
         except ExternalTool.DoesNotExist:
             return self.json_response(
-                '{"error":"external tool %s not found"}' % external_tool_id,
+                '{"error":"external tool %s not found"}' % tool_id,
                 status=404)
 
     def PUT(self, request, **kwargs):
         if not can_manage_external_tools():
             return self.json_response('{"error":"Unauthorized"}', status=401)
 
-        external_tool_id = kwargs['external_tool_id']
+        tool_id = kwargs['tool_id']
         try:
             json_data = json.loads(request.body).get('external_tool', {})
         except Exception as ex:
@@ -40,10 +40,10 @@ class ExternalToolView(RESTDispatch):
             return self.json_response('{"error": "%s"}' % ex, status=400)
 
         try:
-            external_tool = ExternalTool.objects.get(id=external_tool_id)
+            external_tool = ExternalTool.objects.get(id=tool_id)
         except ExternalTool.DoesNotExist:
             return self.json_response(
-                '{"error":"external_tool %s not found"}' % external_tool_id,
+                '{"error":"external_tool %s not found"}' % tool_id,
                 status=404)
 
         external_tool.account_id = json_data['account_id']
@@ -89,9 +89,9 @@ class ExternalToolView(RESTDispatch):
         if not can_manage_external_tools():
             return self.json_response('{"error":"Unauthorized"}', status=401)
 
-        external_tool_id = kwargs['external_tool_id']
+        tool_id = kwargs['tool_id']
         try:
-            external_tool = ExternalTool.objects.get(id=external_tool_id)
+            external_tool = ExternalTool.objects.get(id=tool_id)
             external_tool.delete()
 
             # TODO: delete from Canvas
@@ -103,7 +103,7 @@ class ExternalToolView(RESTDispatch):
                 'external_tool': external_tool.json_data()}))
         except ExternalTool.DoesNotExist:
             return self.json_response(
-                '{"error":"external_tool %s not found"}' % external_tool_id,
+                '{"error":"external_tool %s not found"}' % tool_id,
                 status=404)
 
 

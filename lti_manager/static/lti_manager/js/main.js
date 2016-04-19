@@ -1,11 +1,17 @@
 /*jslint browser: true, plusplus: true, regexp: true */
-/*global $, jQuery, Handlebars, moment */
+/*global $, jQuery, Handlebars, CodeMirror, moment, LTIConfig, confirm */
 
 (function ($) {
     "use strict";
 
+    var EDITOR;
+
     $.ajaxSetup({
         headers: { "X-CSRFToken": $('input[name="csrfmiddlewaretoken"]').val() }
+    });
+
+    Handlebars.registerHelper('stringify', function (object) {
+        return new Handlebars.SafeString(JSON.stringify(object, null, 4));
     });
 
     function draw_error(xhr) {
@@ -18,60 +24,125 @@
         }
     }
 
-    function gather_form_data() {
-        var data = {
-            'name': $('#et-name-input').val(),
-            'account_id': $('#et-account-input').val(),
-            'config': $('#et-config-input').val(),
-        };
+    function draw_updated_tool() {
+        $('#external-tool-editor').modal('hide');
+        load_external_tools();
+    }
 
+    function gather_form_data() {
+        EDITOR.save();
+        var data = {
+            'id': $('#et-id-input').val(),
+            'config': $('#et-config-input').val(),
+            'account_id': $('#et-account-input').val()
+        };
         return {'external_tool': data};
     }
 
-    function add_external_tool() {
-        var json_data = gather_form_data();
+    function save_external_tool() {
+        var json_data = gather_form_data(),
+            tool_id = json_data.external_tool.id,
+            url = '/lti_manager/api/v1/external_tool/',
+            type = 'POST';
+
+        if (tool_id.length) {
+            url += tool_id;
+            type = 'PUT';
+        }
+
         $.ajax({
-            url: '/lti_manager/api/v1/external_tool/',
-            type: 'POST',
+            url: url,
+            type: type,
             dataType: 'json',
-            data: JSON.stringify(json_data), 
-            success: load_external_tools,
-            error: draw_error
-        });
+            data: JSON.stringify(json_data)
+        }).done(draw_updated_tool).fail(draw_error);
     }
 
-    function draw_add_external_tool() {
-        var tpl = Handlebars.compile($('#tool-editor').html()),
-            data = {};
+    function load_external_tool(tool_id, done_fn) {
+        $.ajax({
+            url: '/lti_manager/api/v1/external_tool/' + tool_id,
+            type: 'GET',
+            dataType: 'json'
+        }).done(done_fn).fail(draw_error);
+    }
 
-        $('#external-tool-editor').html(tpl(data)).modal({
+    function delete_external_tool() {
+        var tool_id = $(this).attr('data-tool-id');
+        if (confirm('Really delete this external tool?')) {
+            $.ajax({
+                url: '/lti_manager/api/v1/external_tool/' + tool_id,
+                type: 'DELETE',
+                dataType: 'json'
+            }).done(draw_updated_tool).fail(draw_error);
+        }
+    }
+
+    function open_editor(title) {
+        $('#et-modal-title').html(title);
+        $('#et-modal-body').html('<h2>Loading...</h2>');
+        $('#external-tool-editor').modal({
             backdrop: 'static',
             show: true
         });
-        $('.save-btn').click(add_external_tool);
+        $('.save-btn').off('click');
+    }
+
+    function draw_editor(data) {
+        var tpl = Handlebars.compile($('#tool-editor').html());
+
+        $('#et-modal-body').html(tpl(data.external_tool));
+        $('.save-btn').click(save_external_tool);
+
+        EDITOR = CodeMirror.fromTextArea($('#et-config-input').get(0), {
+            mode: {'name': 'javascript', 'json': true },
+            lineNumbers: true
+        });
+    }
+
+    function load_add_external_tool() {
+        open_editor('Add an External Tool');
+        draw_editor(LTIConfig);
+    }
+
+    function load_clone_external_tool() {
+        var tool_id = $(this).attr('data-tool-id');
+        open_editor('Clone an External Tool');
+        load_external_tool(tool_id, function (data) {
+            data.external_tool.id = '';
+            draw_editor(data);
+        });
+    }
+
+    function load_edit_external_tool() {
+        var tool_id = $(this).attr('data-tool-id');
+        open_editor('Edit an External Tool');
+        load_external_tool(tool_id, draw_editor);
     }
 
     function draw_external_tools(data) {
         var tpl = Handlebars.compile($('#tool-table-row').html());
 
         $('#external-tools-table tbody').html(tpl(data));
-        $('#external-tools-table').dataTable({
-            'aaSorting': [[ 0, 'asc' ]],
-            'bPaginate': false,
-            'searching': false,
-            'bScrollCollapse': true
-        });
-        $('.add-external-tool-btn').click(draw_add_external_tool);
+        if (!$.fn.dataTable.isDataTable('#external-tools-table')) {
+            $('#external-tools-table').dataTable({
+                'aaSorting': [[ 0, 'asc' ]],
+                'bPaginate': false,
+                'searching': false,
+                'bScrollCollapse': true
+            });
+        }
+        $('.et-add').click(load_add_external_tool);
+        $('.et-edit').click(load_edit_external_tool);
+        $('.et-clone').click(load_clone_external_tool);
+        $('.et-delete').click(delete_external_tool);
     }
 
     function load_external_tools() {
         $.ajax({
             url: '/lti_manager/api/v1/external_tools',
             type: 'GET',
-            dataType: 'json',
-            success: draw_external_tools,
-            error: draw_error
-        });
+            dataType: 'json'
+        }).done(draw_external_tools).fail(draw_error);
     }
 
     $(document).ready(function () {
