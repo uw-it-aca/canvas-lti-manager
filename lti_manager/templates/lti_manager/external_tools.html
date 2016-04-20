@@ -8,7 +8,7 @@
 <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css" />
 <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/plug-ins/9dcbecd42ad/integration/bootstrap/3/dataTables.bootstrap.css" />
 <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.0/css/bootstrap-toggle.min.css" rel="stylesheet">
-<link rel="stylesheet" type="text/css" href="{% static 'lti_manager/css/vendor/codemirror.css' media='screen, handheld' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'lti_manager/css/vendor/jsoneditor.css' media='screen, handheld' %}" />
 {% compress css %}
 <link rel="stylesheet" type="text/less" href="{% static 'canvas_admin/css/mobile.less' media='screen, handheld' %}" />
 {% endcompress %}
@@ -50,13 +50,26 @@
             </div>
         </div>
         <div id="external-tool-editor" class="modal fade" role="dialog">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal">&times;</button>
                         <h4 id="et-modal-title" class="modal-title"></h4>
                     </div>
-                    <div id="et-modal-body" class="modal-body"></div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="et-json-editor">LTI Configuration:</label><br/>
+                                <div id="et-json-editor" class="json-editor"></div>
+                                <div style="display: none;"><textarea id="et-config-input"></textarea></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="et-account-input">Subaccount:</label><br/>
+                                <input id="et-account-input" type="text" name="name" value=""/>
+                            </div>
+                            <input id="et-id-input" type="hidden" value=""/>
+                        </form>
+                    </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-primary save-btn" title="Save"><span class="glyphicon" aria-hidden="true"></span>Save</button>
                         <button type="button" class="btn btn-default cancel-btn" title="Cancel" data-dismiss="modal"><span class="glyphicon" aria-hidden="true"></span>Cancel</button>
@@ -67,7 +80,6 @@
     </div>
 </div>
 {% include "handlebars/lti_manager/table_row.html" %}
-{% include "handlebars/lti_manager/editor.html" %}
 {% endblock content %}
 
 {% block extra_js %}
@@ -76,8 +88,7 @@
 <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.0/js/bootstrap-toggle.min.js"></script>
 <script src="{% static 'vendor/js/jquery-ui-1.9.2.custom.min.js' %}"></script>
 <script src="{% static 'vendor/js/moment.min.js' %}"></script>
-<script src="{% static 'lti_manager/js/vendor/codemirror.js' %}"></script>
-<script src="{% static 'lti_manager/js/vendor/javascript.js' %}"></script>
+<script src="{% static 'lti_manager/js/vendor/jquery.jsoneditor.min.js' %}"></script>
 <script src="{% static 'lti_manager/js/config.js' %}"></script>
 {% compress js %}
 <script src="{% static 'lti_manager/js/main.js' %}"></script>

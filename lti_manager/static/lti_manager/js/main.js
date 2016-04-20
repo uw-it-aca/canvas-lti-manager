@@ -79,29 +79,40 @@
 
     function open_editor(title) {
         $('#et-modal-title').html(title);
-        $('#et-modal-body').html('<h2>Loading...</h2>');
+
+        //if (EDITOR === undefined) {
+        //    EDITOR = CodeMirror.fromTextArea($('#et-config-input').get(0), {
+        //        mode: {'name': 'javascript', 'json': true },
+        //        lineNumbers: true,
+        //        autofocus: true
+        //    });
+        //}
+
         $('#external-tool-editor').modal({
             backdrop: 'static',
             show: true
         });
-        $('.save-btn').off('click');
     }
 
-    function draw_editor(data) {
-        var tpl = Handlebars.compile($('#tool-editor').html());
+    function update_textarea(json) {
+        $('#et-config-input').val(JSON.stringify(json));
+    }
 
-        $('#et-modal-body').html(tpl(data.external_tool));
-        $('.save-btn').click(save_external_tool);
-
-        EDITOR = CodeMirror.fromTextArea($('#et-config-input').get(0), {
-            mode: {'name': 'javascript', 'json': true },
-            lineNumbers: true
+    function load_form_data(data) {
+        $('#et-id-input').val(data.external_tool.id);
+        $('#et-account-input').val(data.external_tool.account_id);
+        update_textarea(data.external_tool.config);
+        $('#et-json-editor').jsonEditor(data.external_tool.config, {
+            change: update_textarea
         });
+
+        //EDITOR.getDoc().setValue(json_str);
+        //EDITOR.refresh();
     }
 
     function load_add_external_tool() {
         open_editor('Add an External Tool');
-        draw_editor(LTIConfig);
+        load_form_data(LTIConfig);
     }
 
     function load_clone_external_tool() {
@@ -109,14 +120,14 @@
         open_editor('Clone an External Tool');
         load_external_tool(tool_id, function (data) {
             data.external_tool.id = '';
-            draw_editor(data);
+            load_form_data(data);
         });
     }
 
     function load_edit_external_tool() {
         var tool_id = $(this).attr('data-tool-id');
         open_editor('Edit an External Tool');
-        load_external_tool(tool_id, draw_editor);
+        load_external_tool(tool_id, load_form_data);
     }
 
     function draw_external_tools(data) {
@@ -135,6 +146,7 @@
         $('.et-edit').click(load_edit_external_tool);
         $('.et-clone').click(load_clone_external_tool);
         $('.et-delete').click(delete_external_tool);
+        $('.save-btn').click(save_external_tool);
     }
 
     function load_external_tools() {
