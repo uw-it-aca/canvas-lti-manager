@@ -4,8 +4,6 @@
 (function ($) {
     "use strict";
 
-    var EDITOR;
-
     $.ajaxSetup({
         headers: { "X-CSRFToken": $('input[name="csrfmiddlewaretoken"]').val() }
     });
@@ -30,7 +28,6 @@
     }
 
     function gather_form_data() {
-        EDITOR.save();
         var data = {
             'id': $('#et-id-input').val(),
             'config': $('#et-config-input').val(),
@@ -79,15 +76,6 @@
 
     function open_editor(title) {
         $('#et-modal-title').html(title);
-
-        //if (EDITOR === undefined) {
-        //    EDITOR = CodeMirror.fromTextArea($('#et-config-input').get(0), {
-        //        mode: {'name': 'javascript', 'json': true },
-        //        lineNumbers: true,
-        //        autofocus: true
-        //    });
-        //}
-
         $('#external-tool-editor').modal({
             backdrop: 'static',
             show: true
@@ -98,21 +86,32 @@
         $('#et-config-input').val(JSON.stringify(json));
     }
 
+    function prepare_json(source) {
+        var json = $.extend(true, {}, LTIConfig);
+        if (source === null) {
+            return json;
+        }
+        return $.extend(true, json, source);
+    }
+
     function load_form_data(data) {
+        var json = prepare_json(data.external_tool.config);
+
         $('#et-id-input').val(data.external_tool.id);
         $('#et-account-input').val(data.external_tool.account_id);
-        update_textarea(data.external_tool.config);
-        $('#et-json-editor').jsonEditor(data.external_tool.config, {
+        update_textarea(json);
+        $('#et-json-editor').jsonEditor(json, {
             change: update_textarea
         });
-
-        //EDITOR.getDoc().setValue(json_str);
-        //EDITOR.refresh();
     }
 
     function load_add_external_tool() {
         open_editor('Add an External Tool');
-        load_form_data(LTIConfig);
+        load_form_data({'external_tool': {
+            'id': null,
+            'account_id': null,
+            'config': null
+        }});
     }
 
     function load_clone_external_tool() {
