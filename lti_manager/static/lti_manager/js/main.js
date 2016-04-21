@@ -1,5 +1,5 @@
 /*jslint browser: true, plusplus: true, regexp: true */
-/*global $, jQuery, Handlebars, CodeMirror, moment, LTIConfig, confirm */
+/*global $, jQuery, Handlebars, moment, LTIConfig, confirm */
 
 (function ($) {
     "use strict";
