@@ -6,6 +6,7 @@ from userservice.user import UserService
 from django.utils.timezone import utc
 from datetime import datetime
 import json
+import re
 
 
 logger = getLogger(__name__)
@@ -37,6 +38,7 @@ class ExternalToolView(RESTDispatch):
         tool_id = kwargs['tool_id']
         try:
             json_data = json.loads(request.body).get('external_tool', {})
+            self.validate(json_data)
         except Exception as ex:
             logger.error('PUT ExternalTool error: %s' % ex)
             return self.json_response('{"error": "%s"}' % ex, status=400)
@@ -68,6 +70,7 @@ class ExternalToolView(RESTDispatch):
 
         try:
             json_data = json.loads(request.body).get('external_tool', {})
+            self.validate(json_data)
         except Exception as ex:
             logger.error('POST ExternalTool error: %s' % ex)
             return self.json_response('{"error": "%s"}' % ex, status=400)
@@ -107,6 +110,14 @@ class ExternalToolView(RESTDispatch):
             return self.json_response(
                 '{"error":"external_tool %s not found"}' % tool_id,
                 status=404)
+
+    def validate(self, json_data):
+        re_canvas_id = re.compile(r"^\d+$")
+        account_id = json_data.get('account_id', None)
+        if account_id is None or not len(account_id):
+            raise Exception('Subaccount ID is required')
+        elif re.match(r'^\d+$', account_id) is None:
+            raise Exception('Subaccount ID is invalid')
 
 
 class ExternalToolListView(RESTDispatch):

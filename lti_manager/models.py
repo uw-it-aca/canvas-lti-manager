@@ -18,7 +18,7 @@ class ExternalTool(models.Model):
         ('admins', 'Admins'), ('members', 'Members')
     )
 
-    account_id = models.CharField(max_length=100, null=True)
+    account_id = models.CharField(max_length=100)
     config = models.CharField(max_length=2000)
     changed_by = models.CharField(max_length=32)
     changed_date = models.DateTimeField()

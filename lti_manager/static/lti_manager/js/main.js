@@ -16,7 +16,8 @@
         var json;
         try {
             json = $.parseJSON(xhr.responseText);
-            console.log('admin service error:' + json.error);
+            $('.et-errors').html(json.error);
+            $('#et-alert').show();
         } catch (e) {
             console.log('Unknown admin service error');
         }
@@ -76,6 +77,7 @@
 
     function open_editor(title) {
         $('#et-modal-title').html(title);
+        $('#et-alert').hide();
         $('#external-tool-editor').modal({
             backdrop: 'static',
             show: true
@@ -148,7 +150,6 @@
         $('.et-edit').click(load_edit_external_tool);
         $('.et-clone').click(load_clone_external_tool);
         $('.et-delete').click(delete_external_tool);
-        $('.save-btn').click(save_external_tool);
     }
 
     function load_external_tools() {
@@ -159,7 +160,12 @@
         }).done(draw_external_tools).fail(draw_error);
     }
 
-    $(document).ready(function () {
+    function initialize() {
         load_external_tools();
+        $('.save-btn').click(save_external_tool);
+    }
+
+    $(document).ready(function () {
+        initialize();
     });
 }(jQuery));
