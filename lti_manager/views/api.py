@@ -22,7 +22,9 @@ class ExternalToolView(RESTDispatch):
             external_tool = ExternalTool.objects.get(id=tool_id)
             data = external_tool.json_data()
             data['read_only'] = False if can_manage_external_tools() else True
-            return self.json_response(json.dumps({'external_tool': data}))
+            return self.json_response(json.dumps({'external_tool': data},
+                                                 sort_keys=True))
+
         except ExternalTool.DoesNotExist:
             return self.json_response(
                 '{"error":"external tool %s not found"}' % tool_id,

@@ -1,10 +1,8 @@
 /*jslint browser: true, plusplus: true, regexp: true */
-/*global $, jQuery, Handlebars, CodeMirror, moment, LTIConfig, confirm */
+/*global $, jQuery, Handlebars, moment, LTIConfig, confirm */
 
 (function ($) {
     "use strict";
-
-    var EDITOR;
 
     $.ajaxSetup({
         headers: { "X-CSRFToken": $('input[name="csrfmiddlewaretoken"]').val() }
@@ -30,7 +28,6 @@
     }
 
     function gather_form_data() {
-        EDITOR.save();
         var data = {
             'id': $('#et-id-input').val(),
             'config': $('#et-config-input').val(),
@@ -79,29 +76,42 @@
 
     function open_editor(title) {
         $('#et-modal-title').html(title);
-        $('#et-modal-body').html('<h2>Loading...</h2>');
         $('#external-tool-editor').modal({
             backdrop: 'static',
             show: true
         });
-        $('.save-btn').off('click');
     }
 
-    function draw_editor(data) {
-        var tpl = Handlebars.compile($('#tool-editor').html());
+    function update_textarea(json) {
+        $('#et-config-input').val(JSON.stringify(json));
+    }
 
-        $('#et-modal-body').html(tpl(data.external_tool));
-        $('.save-btn').click(save_external_tool);
+    function prepare_json(source) {
+        var json = $.extend(true, {}, LTIConfig);
+        if (source === null) {
+            return json;
+        }
+        return $.extend(true, json, source);
+    }
 
-        EDITOR = CodeMirror.fromTextArea($('#et-config-input').get(0), {
-            mode: {'name': 'javascript', 'json': true },
-            lineNumbers: true
+    function load_form_data(data) {
+        var json = prepare_json(data.external_tool.config);
+
+        $('#et-id-input').val(data.external_tool.id);
+        $('#et-account-input').val(data.external_tool.account_id);
+        update_textarea(json);
+        $('#et-json-editor').jsonEditor(json, {
+            change: update_textarea
         });
     }
 
     function load_add_external_tool() {
         open_editor('Add an External Tool');
-        draw_editor(LTIConfig);
+        load_form_data({'external_tool': {
+            'id': null,
+            'account_id': null,
+            'config': null
+        }});
     }
 
     function load_clone_external_tool() {
@@ -109,32 +119,36 @@
         open_editor('Clone an External Tool');
         load_external_tool(tool_id, function (data) {
             data.external_tool.id = '';
-            draw_editor(data);
+            load_form_data(data);
         });
     }
 
     function load_edit_external_tool() {
         var tool_id = $(this).attr('data-tool-id');
         open_editor('Edit an External Tool');
-        load_external_tool(tool_id, draw_editor);
+        load_external_tool(tool_id, load_form_data);
     }
 
     function draw_external_tools(data) {
         var tpl = Handlebars.compile($('#tool-table-row').html());
 
-        $('#external-tools-table tbody').html(tpl(data));
-        if (!$.fn.dataTable.isDataTable('#external-tools-table')) {
-            $('#external-tools-table').dataTable({
-                'aaSorting': [[ 0, 'asc' ]],
-                'bPaginate': false,
-                'searching': false,
-                'bScrollCollapse': true
-            });
+        if ($.fn.dataTable.isDataTable('#external-tools-table')) {
+            $('#external-tools-table').DataTable().destroy();
         }
+
+        $('#external-tools-table tbody').html(tpl(data));
+        $('#external-tools-table').DataTable({
+            'aaSorting': [[ 0, 'asc' ]],
+            'bPaginate': false,
+            'searching': false,
+            'bScrollCollapse': true
+        });
+
         $('.et-add').click(load_add_external_tool);
         $('.et-edit').click(load_edit_external_tool);
         $('.et-clone').click(load_clone_external_tool);
         $('.et-delete').click(delete_external_tool);
+        $('.save-btn').click(save_external_tool);
     }
 
     function load_external_tools() {
