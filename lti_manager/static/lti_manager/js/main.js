@@ -132,15 +132,18 @@
     function draw_external_tools(data) {
         var tpl = Handlebars.compile($('#tool-table-row').html());
 
-        $('#external-tools-table tbody').html(tpl(data));
-        if (!$.fn.dataTable.isDataTable('#external-tools-table')) {
-            $('#external-tools-table').dataTable({
-                'aaSorting': [[ 0, 'asc' ]],
-                'bPaginate': false,
-                'searching': false,
-                'bScrollCollapse': true
-            });
+        if ($.fn.dataTable.isDataTable('#external-tools-table')) {
+            $('#external-tools-table').DataTable().destroy();
         }
+
+        $('#external-tools-table tbody').html(tpl(data));
+        $('#external-tools-table').DataTable({
+            'aaSorting': [[ 0, 'asc' ]],
+            'bPaginate': false,
+            'searching': false,
+            'bScrollCollapse': true
+        });
+
         $('.et-add').click(load_add_external_tool);
         $('.et-edit').click(load_edit_external_tool);
         $('.et-clone').click(load_clone_external_tool);

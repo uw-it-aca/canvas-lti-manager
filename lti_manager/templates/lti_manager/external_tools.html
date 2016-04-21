@@ -19,6 +19,12 @@
 <link rel="stylesheet" type="text/less" href="{% static 'canvas_admin/css/desktop.less' media='screen and (min-width: 480px)' %}" />
 {% endcompress %}
 {% endif %}
+<style>
+  .json-editor { padding-top: 0px; }
+  .json-editor .property { width: 160px; }
+  .json-editor .item.appender .property { width: 160px; }
+  .json-editor .value { width: 400px; }
+</style>
 {% endblock extra_css %}
 
 {% block content %}
@@ -45,7 +51,7 @@
                         <th></th>
                       </tr>
                     </thead>
-                    <tbody class="scrollable"><tr><td colspan="5" class="waiting"><i class="fa fa-spin"></i></td></tr></tbody>
+                    <tbody class="scrollable"><!-- <tr><td colspan="4" class="waiting"><i class="fa fa-spin"></i></td></tr>--></tbody>
                 </table>
             </div>
         </div>
@@ -59,7 +65,7 @@
                     <div class="modal-body">
                         <form>
                             <div class="form-group">
-                                <label for="et-json-editor">LTI Configuration:</label><br/>
+                                <label for="et-json-editor">LTI Configuration:</label>
                                 <div id="et-json-editor" class="json-editor"></div>
                                 <div style="display: none;"><textarea id="et-config-input" style="width: 300px; height: 400px;"></textarea></div>
                             </div>
