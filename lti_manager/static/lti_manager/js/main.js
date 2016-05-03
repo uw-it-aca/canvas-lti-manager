@@ -101,6 +101,11 @@
 
         $('#et-id-input').val(data.external_tool.id);
         $('#et-account-input').val(data.external_tool.account_id);
+        if (data.external_tool.id && data.external_tool.account_id) {
+            $('#et-account-input').prop('disabled', true);
+        } else {
+            $('#et-account-input').prop('disabled', false);
+        }
         update_textarea(json);
         $('#et-json-editor').jsonEditor(json, {
             change: update_textarea
