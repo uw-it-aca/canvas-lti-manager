@@ -22,17 +22,26 @@ class ExternalToolView(RESTDispatch):
     """
     def GET(self, request, **kwargs):
         tool_id = kwargs['tool_id']
+        read_only = False if can_manage_external_tools() else True
         try:
             external_tool = ExternalTool.objects.get(id=tool_id)
             data = external_tool.json_data()
-            data['read_only'] = False if can_manage_external_tools() else True
-            return self.json_response(json.dumps({'external_tool': data},
-                                                 sort_keys=True))
+            data['read_only'] = read_only
+
+            if not read_only:
+                keystore = BLTIKeyStore.objects.get(
+                    consumer_key=data['consumer_key'])
+                data['config']['shared_secret'] = keystore.shared_secret
 
         except ExternalTool.DoesNotExist:
             return self.json_response(
                 '{"error":"external tool %s not found"}' % tool_id,
                 status=404)
+        except BLTIKeyStore.DoesNotExist:
+            pass
+
+        return self.json_response(json.dumps({'external_tool': data},
+                                             sort_keys=True))
 
     def PUT(self, request, **kwargs):
         if not can_manage_external_tools():
@@ -65,7 +74,13 @@ class ExternalToolView(RESTDispatch):
 
         keystore.external_tool_id = external_tool.id
         keystore.consumer_key = json_data['config']['consumer_key']
-        keystore.shared_secret = json_data['config']['shared_secret']
+
+        shared_secret = json_data['config']['shared_secret']
+        if (shared_secret is None or not len(shared_secret)):
+            shared_secret = external_tool.generate_shared_secret()
+            json_data['config']['shared_secret'] = shared_secret
+
+        keystore.shared_secret = shared_secret
 
         try:
             new_config = ExternalTools().update_external_tool_in_account(
@@ -109,7 +124,13 @@ class ExternalToolView(RESTDispatch):
         keystore = BLTIKeyStore()
         keystore.external_tool_id = external_tool.id
         keystore.consumer_key = json_data['config']['consumer_key']
-        keystore.shared_secret = json_data['config']['shared_secret']
+
+        shared_secret = json_data['config']['shared_secret']
+        if (shared_secret is None or not len(shared_secret)):
+            shared_secret = external_tool.generate_shared_secret()
+            json_data['config']['shared_secret'] = shared_secret
+
+        keystore.shared_secret = shared_secret
 
         try:
             new_config = ExternalTools().create_external_tool_in_account(
@@ -119,6 +140,7 @@ class ExternalToolView(RESTDispatch):
             external_tool.provisioned_date = datetime.utcnow().replace(
                 tzinfo=utc)
             external_tool.save()
+            keystore.save()
 
             logger.info('%s created External Tool "%s"' % (
                 external_tool.changed_by, external_tool.id))

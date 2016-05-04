@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils.timezone import utc, localtime
 import datetime
+import string
+import random
 import json
 
 
@@ -24,12 +26,17 @@ class ExternalTool(models.Model):
     changed_date = models.DateTimeField()
     provisioned_date = models.DateTimeField(null=True)
 
+    def generate_shared_secret(self):
+        return ''.join(random.SystemRandom().choice(
+            string.ascii_uppercase + string.digits) for _ in range(32))
+
     def json_data(self):
         config = json.loads(self.config)
         return {
             'id': self.pk,
             'account_id': self.account_id,
             'name': config.get('name'),
+            'consumer_key': config.get('consumer_key'),
             'config': config,
             'changed_by': self.changed_by,
             'changed_date': localtime(self.changed_date).isoformat() if (
