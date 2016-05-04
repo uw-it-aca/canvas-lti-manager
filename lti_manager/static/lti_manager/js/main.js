@@ -126,6 +126,7 @@
         open_editor('Clone an External Tool');
         load_external_tool(tool_id, function (data) {
             data.external_tool.id = '';
+            data.external_tool.config.id = '';
             load_form_data(data);
         });
     }
