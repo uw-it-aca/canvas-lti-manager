@@ -35,6 +35,7 @@ class ExternalTool(models.Model):
         return {
             'id': self.pk,
             'account_id': self.account_id,
+            'canvas_id': config.get('id'),
             'name': config.get('name'),
             'consumer_key': config.get('consumer_key'),
             'config': config,

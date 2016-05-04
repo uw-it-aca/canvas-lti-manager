@@ -3,7 +3,9 @@
 {{# each external_tools}}
 <tr>
     <td>{{ name }}</td>
+    <td>{{ canvas_id }}</td>
     <td>{{ account_id }}</td>
+    <td>{{ consumer_key }}</td>
     <td>{{ changed_date }}{{# if changed_by}} ({{ changed_by }}){{/if}}</td>
     <td>{{# unless read_only}}<div class="btn-group">
             <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" title="External tool actions" aria-haspopup="true" aria-expanded="false">Actions <span class="caret"></span></button>
