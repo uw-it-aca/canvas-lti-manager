@@ -49,7 +49,7 @@ class ExternalToolView(RESTDispatch):
         try:
             external_tool = ExternalTool.objects.get(id=tool_id)
             keystore = BLTIKeyStore.objects.get(
-                consumer_key=external_tool.consumer_key)
+                consumer_key=json_data['config']['consumer_key'])
         except ExternalTool.DoesNotExist:
             return self.json_response(
                 '{"error":"external_tool %s not found"}' % tool_id,
@@ -170,7 +170,7 @@ class ExternalToolView(RESTDispatch):
         elif re.match(r'^\d+$', account_id) is None:
             raise Exception('Subaccount ID is invalid')
 
-        config = json_data.get('account_id', {})
+        config = json_data.get('config', {})
         name = config.get('name', None)
         if name is None or not len(name):
             raise Exception('name is required')
