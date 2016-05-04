@@ -31,7 +31,7 @@
     function gather_form_data() {
         var data = {
             'id': $('#et-id-input').val(),
-            'config': $('#et-config-input').val(),
+            'config': $.parseJSON($('#et-config-input').val()),
             'account_id': $('#et-account-input').val()
         };
         return {'external_tool': data};
