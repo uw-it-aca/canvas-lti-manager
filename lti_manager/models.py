@@ -6,6 +6,12 @@ import random
 import json
 
 
+class ExternalToolAccount(models.Model):
+    account_id = models.CharField(max_length=100, unique=True)
+    sis_account_id = models.CharField(max_length=100)
+    name = models.CharField(max_length=250)
+
+
 class ExternalTool(models.Model):
     PRIVACY_ANONYMOUS = 'anonymous'
     PRIVACY_NAMEONLY = 'name_only'
@@ -20,7 +26,7 @@ class ExternalTool(models.Model):
         ('admins', 'Admins'), ('members', 'Members')
     )
 
-    account_id = models.CharField(max_length=100)
+    account = models.ForeignKey(ExternalToolAccount)
     config = models.CharField(max_length=2000)
     changed_by = models.CharField(max_length=32)
     changed_date = models.DateTimeField()
@@ -34,7 +40,9 @@ class ExternalTool(models.Model):
         config = json.loads(self.config)
         return {
             'id': self.pk,
-            'account_id': self.account_id,
+            'account_id': self.account.account_id,
+            'sis_account_id': self.account.sis_account_id,
+            'account_name': self.account.name,
             'canvas_id': config.get('id'),
             'name': config.get('name'),
             'consumer_key': config.get('consumer_key'),
