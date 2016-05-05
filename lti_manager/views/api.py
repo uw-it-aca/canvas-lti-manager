@@ -57,8 +57,9 @@ class ExternalToolView(RESTDispatch):
 
         try:
             external_tool = ExternalTool.objects.get(id=tool_id)
+            curr_data = external_tool.json_data()
             keystore = BLTIKeyStore.objects.get(
-                consumer_key=json_data['config']['consumer_key'])
+                consumer_key=curr_data['consumer_key'])
         except ExternalTool.DoesNotExist:
             return self.json_response(
                 '{"error":"external_tool %s not found"}' % tool_id,
@@ -72,15 +73,13 @@ class ExternalToolView(RESTDispatch):
         external_tool.changed_date = datetime.utcnow().replace(tzinfo=utc)
         external_tool.save()
 
-        keystore.external_tool_id = external_tool.id
         keystore.consumer_key = json_data['config']['consumer_key']
 
         shared_secret = json_data['config']['shared_secret']
         if (shared_secret is None or not len(shared_secret)):
-            shared_secret = external_tool.generate_shared_secret()
-            json_data['config']['shared_secret'] = shared_secret
-
-        keystore.shared_secret = shared_secret
+            del json_data['config']['shared_secret']
+        else:
+            keystore.shared_secret = shared_secret
 
         try:
             new_config = ExternalTools().update_external_tool_in_account(
@@ -91,7 +90,8 @@ class ExternalToolView(RESTDispatch):
             external_tool.provisioned_date = datetime.utcnow().replace(
                 tzinfo=utc)
             external_tool.save()
-            keystore.save()
+            if keystore.shared_secret:
+                keystore.save()
 
             logger.info('%s updated External Tool "%s"' % (
                 external_tool.changed_by, external_tool.id))
@@ -122,7 +122,6 @@ class ExternalToolView(RESTDispatch):
         external_tool.save()
 
         keystore = BLTIKeyStore()
-        keystore.external_tool_id = external_tool.id
         keystore.consumer_key = json_data['config']['consumer_key']
 
         shared_secret = json_data['config']['shared_secret']
@@ -159,7 +158,10 @@ class ExternalToolView(RESTDispatch):
         tool_id = kwargs['tool_id']
         try:
             external_tool = ExternalTool.objects.get(id=tool_id)
-            keystore = BLTIKeyStore.objects.get(external_tool_id=tool_id)
+            curr_data = external_tool.json_data()
+            keystore = BLTIKeyStore.objects.get(
+                consumer_key=curr_data['consumer_key'])
+
         except ExternalTool.DoesNotExist:
             return self.json_response(
                 '{"error":"external_tool %s not found"}' % tool_id, status=404)
