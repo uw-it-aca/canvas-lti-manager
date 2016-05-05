@@ -8,8 +8,8 @@ import json
 
 class ExternalToolAccount(models.Model):
     account_id = models.CharField(max_length=100, unique=True)
-    sis_account_id = models.CharField(max_length=100)
-    name = models.CharField(max_length=250)
+    sis_account_id = models.CharField(max_length=100, null=True)
+    name = models.CharField(max_length=250, null=True)
 
 
 class ExternalTool(models.Model):
