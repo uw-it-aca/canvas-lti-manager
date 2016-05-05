@@ -121,15 +121,23 @@ class ExternalToolView(RESTDispatch):
         external_tool.changed_date = datetime.utcnow().replace(tzinfo=utc)
         external_tool.save()
 
-        keystore = BLTIKeyStore()
-        keystore.consumer_key = json_data['config']['consumer_key']
-
         shared_secret = json_data['config']['shared_secret']
-        if (shared_secret is None or not len(shared_secret)):
-            shared_secret = external_tool.generate_shared_secret()
-            json_data['config']['shared_secret'] = shared_secret
+        try:
+            keystore = BLTIKeyStore.objects.get(
+                consumer_key=json_data['config']['consumer_key'])
+            shared_secret = keystore.shared_secret
 
-        keystore.shared_secret = shared_secret
+        except BLTIKeyStore.DoesNotExist:
+            keystore = BLTIKeyStore()
+            keystore.consumer_key = json_data['config']['consumer_key']
+
+            if (shared_secret is None or not len(shared_secret)):
+                shared_secret = external_tool.generate_shared_secret()
+
+            keystore.shared_secret = shared_secret
+            keystore.save()
+
+        json_data['config']['shared_secret'] = shared_secret
 
         try:
             new_config = ExternalTools().create_external_tool_in_account(
@@ -139,7 +147,6 @@ class ExternalToolView(RESTDispatch):
             external_tool.provisioned_date = datetime.utcnow().replace(
                 tzinfo=utc)
             external_tool.save()
-            keystore.save()
 
             logger.info('%s created External Tool "%s"' % (
                 external_tool.changed_by, external_tool.id))
