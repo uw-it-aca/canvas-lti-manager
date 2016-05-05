@@ -1,9 +1,10 @@
 from django.utils.log import getLogger
-from lti_manager.models import ExternalTool
+from lti_manager.models import ExternalTool, ExternalToolAccount
 from lti_manager.views import can_manage_external_tools
 from sis_provisioner.views.rest_dispatch import RESTDispatch
 from userservice.user import UserService
 from restclients.canvas.external_tools import ExternalTools
+from restclients.canvas.accounts import Accounts
 from restclients.exceptions import DataFailureException
 from django.utils.timezone import utc
 from blti.models import BLTIKeyStore
@@ -114,34 +115,57 @@ class ExternalToolView(RESTDispatch):
             logger.error('POST ExternalTool error: %s' % ex)
             return self.json_response('{"error": "%s"}' % ex, status=400)
 
+        try:
+            account_id = json_data['account_id']
+            account = ExternalToolAccount.objects.get(account_id=account_id)
+        except ExternalToolAccount.DoesNotExist:
+            account = ExternalToolAccount(account_id=account_id)
+            try:
+                canvas_account = Accounts().get_account(account_id)
+                account.name = canvas_account.name
+                account.sis_account_id = canvas_account.sis_account_id
+            except DataFailureException as ex:
+                pass
+            account.save()
+
         external_tool = ExternalTool()
-        external_tool.account_id = json_data['account_id']
+        external_tool.account = account
         external_tool.config = json.dumps(json_data['config'])
         external_tool.changed_by = UserService().get_original_user()
         external_tool.changed_date = datetime.utcnow().replace(tzinfo=utc)
         external_tool.save()
 
-        shared_secret = json_data['config']['shared_secret']
+        canvas_id = json_data['config']['id']
         try:
             keystore = BLTIKeyStore.objects.get(
                 consumer_key=json_data['config']['consumer_key'])
-            shared_secret = keystore.shared_secret
+            # Re-using an existing key/secret (clone?)
+            json_data['config']['shared_secret'] = keystore.shared_secret
 
         except BLTIKeyStore.DoesNotExist:
             keystore = BLTIKeyStore()
             keystore.consumer_key = json_data['config']['consumer_key']
 
+            shared_secret = json_data['config']['shared_secret']
             if (shared_secret is None or not len(shared_secret)):
-                shared_secret = external_tool.generate_shared_secret()
+                if canvas_id is None or not len(canvas_id):
+                    # New external tool, generate a secret
+                    shared_secret = external_tool.generate_shared_secret()
+                    keystore.shared_secret = shared_secret
+                    json_data['config']['shared_secret'] = shared_secret
+                else:
+                    # Existing external tool, don't overwrite the secret
+                    del json_data['config']['shared_secret'] 
 
-            keystore.shared_secret = shared_secret
             keystore.save()
 
-        json_data['config']['shared_secret'] = shared_secret
-
         try:
-            new_config = ExternalTools().create_external_tool_in_account(
-                external_tool.account_id, json_data['config'])
+            if canvas_id is None or not len(canvas_id):
+                new_config = ExternalTools().create_external_tool_in_account(
+                    external_tool.account_id, json_data['config'])
+            else:
+                new_config = ExternalTools().update_external_tool_in_account(       
+                    external_tool.account_id, canvas_id, json_data['config'])
 
             external_tool.config = json.dumps(new_config)
             external_tool.provisioned_date = datetime.utcnow().replace(
