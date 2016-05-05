@@ -133,7 +133,6 @@ class ExternalToolView(RESTDispatch):
         external_tool.config = json.dumps(json_data['config'])
         external_tool.changed_by = UserService().get_original_user()
         external_tool.changed_date = datetime.utcnow().replace(tzinfo=utc)
-        external_tool.save()
 
         canvas_id = json_data['config']['id']
         try:
@@ -148,7 +147,7 @@ class ExternalToolView(RESTDispatch):
 
             shared_secret = json_data['config']['shared_secret']
             if (shared_secret is None or not len(shared_secret)):
-                if canvas_id is None or not len(canvas_id):
+                if not canvas_id:
                     # New external tool, generate a secret
                     shared_secret = external_tool.generate_shared_secret()
                     keystore.shared_secret = shared_secret
@@ -160,7 +159,7 @@ class ExternalToolView(RESTDispatch):
             keystore.save()
 
         try:
-            if canvas_id is None or not len(canvas_id):
+            if not canvas_id:
                 new_config = ExternalTools().create_external_tool_in_account(
                     external_tool.account_id, json_data['config'])
             else:
@@ -177,7 +176,7 @@ class ExternalToolView(RESTDispatch):
 
         except DataFailureException as err:
             return self.json_response(
-                '{"error":"%s: $s"}' % (err.status, err.msg), status=500)
+                '{"error":"%s: %s"}' % (err.status, err.msg), status=500)
 
         return self.json_response(json.dumps({
             'external_tool': external_tool.json_data()}))
@@ -200,9 +199,8 @@ class ExternalToolView(RESTDispatch):
             keystore = None
 
         try:
-            canvas_id = external_tool.json_data().config.id
             ExternalTools().delete_external_tool_in_account(
-                external_tool.account_id, canvas_id)
+                curr_data['account_id'], curr_data['config']['id'])
             external_tool.delete()
             if keystore is not None:
                 keystore.delete()
