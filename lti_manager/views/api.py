@@ -84,7 +84,7 @@ class ExternalToolView(RESTDispatch):
 
         try:
             new_config = ExternalTools().update_external_tool_in_account(
-                external_tool.account_id, json_data['config']['id'],
+                external_tool.account.account_id, json_data['config']['id'],
                 json_data['config'])
 
             external_tool.config = json.dumps(new_config)
@@ -115,8 +115,10 @@ class ExternalToolView(RESTDispatch):
             logger.error('POST ExternalTool error: %s' % ex)
             return self.json_response('{"error": "%s"}' % ex, status=400)
 
+        account_id = json_data['account_id']
+        canvas_id = json_data['config'].get('id')
+
         try:
-            account_id = json_data['account_id']
             account = ExternalToolAccount.objects.get(account_id=account_id)
         except ExternalToolAccount.DoesNotExist:
             account = ExternalToolAccount(account_id=account_id)
@@ -134,7 +136,6 @@ class ExternalToolView(RESTDispatch):
         external_tool.changed_by = UserService().get_original_user()
         external_tool.changed_date = datetime.utcnow().replace(tzinfo=utc)
 
-        canvas_id = json_data['config']['id']
         try:
             keystore = BLTIKeyStore.objects.get(
                 consumer_key=json_data['config']['consumer_key'])
@@ -154,25 +155,29 @@ class ExternalToolView(RESTDispatch):
                     json_data['config']['shared_secret'] = shared_secret
                 else:
                     # Existing external tool, don't overwrite the secret
-                    del json_data['config']['shared_secret'] 
+                    del json_data['config']['shared_secret']
 
             keystore.save()
 
         try:
             if not canvas_id:
                 new_config = ExternalTools().create_external_tool_in_account(
-                    external_tool.account_id, json_data['config'])
+                    account_id, json_data['config'])
+
+                logger.info('%s updated External Tool "%s"' % (
+                    external_tool.changed_by, external_tool.id))
+
             else:
-                new_config = ExternalTools().update_external_tool_in_account(       
-                    external_tool.account_id, canvas_id, json_data['config'])
+                new_config = ExternalTools().update_external_tool_in_account(
+                    account_id, canvas_id, json_data['config'])
+
+                logger.info('%s created External Tool "%s"' % (
+                    external_tool.changed_by, external_tool.id))
 
             external_tool.config = json.dumps(new_config)
             external_tool.provisioned_date = datetime.utcnow().replace(
                 tzinfo=utc)
             external_tool.save()
-
-            logger.info('%s created External Tool "%s"' % (
-                external_tool.changed_by, external_tool.id))
 
         except DataFailureException as err:
             return self.json_response(
