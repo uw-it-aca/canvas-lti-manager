@@ -12,6 +12,10 @@
         return new Handlebars.SafeString(JSON.stringify(object, null, 4));
     });
 
+    Handlebars.registerHelper('format_date', function (dt) {
+        return (dt !== null) ? moment(dt).format('MM/DD/YYYY h:mm a') : ''; 
+    });
+
     function draw_error(xhr) {
         var json;
         try {
