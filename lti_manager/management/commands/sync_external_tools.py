@@ -20,11 +20,11 @@ class Command(SISProvisionerCommand):
         self.update_job()
 
     def update_tools_in_account(self, account):
-        for tool in self._tools.get_external_tools_in_account(account_id)
+        for tool in self._tools.get_external_tools_in_account(account_id):
             self.update_model(account, tool)
 
-        for account in self._accounts.get_sub_accounts(account.account_id):
-            self.update_tools_in_account(account)
+        for subaccount in self._accounts.get_sub_accounts(account.account_id):
+            self.update_tools_in_account(subaccount)
 
     def update_model(self, account, config):
         canvas_id = config.id
