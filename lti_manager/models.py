@@ -44,7 +44,7 @@ class ExternalTool(models.Model):
             'account_id': self.account.account_id,
             'sis_account_id': self.account.sis_account_id,
             'account_name': self.account.name,
-            'canvas_id': canvas_id,
+            'canvas_id': self.canvas_id,
             'name': config.get('name'),
             'consumer_key': config.get('consumer_key'),
             'config': config,
