@@ -27,6 +27,7 @@ class ExternalTool(models.Model):
     )
 
     account = models.ForeignKey(ExternalToolAccount)
+    canvas_id = models.CharField(max_length=20, unique=True)
     config = models.CharField(max_length=2000)
     changed_by = models.CharField(max_length=32)
     changed_date = models.DateTimeField()
@@ -43,7 +44,7 @@ class ExternalTool(models.Model):
             'account_id': self.account.account_id,
             'sis_account_id': self.account.sis_account_id,
             'account_name': self.account.name,
-            'canvas_id': config.get('id'),
+            'canvas_id': canvas_id,
             'name': config.get('name'),
             'consumer_key': config.get('consumer_key'),
             'config': config,

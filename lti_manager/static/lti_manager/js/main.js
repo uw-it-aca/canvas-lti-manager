@@ -34,7 +34,7 @@
 
     function gather_form_data() {
         var data = {
-            'id': $('#et-id-input').val(),
+            'canvas_id': $('#et-id-input').val(),
             'config': $.parseJSON($('#et-config-input').val()),
             'account_id': $('#et-account-input').val()
         };
@@ -43,7 +43,7 @@
 
     function save_external_tool() {
         var json_data = gather_form_data(),
-            tool_id = json_data.external_tool.id,
+            tool_id = json_data.external_tool.canvas_id,
             url = 'lti_manager/api/v1/external_tool/',
             type = 'POST';
 
@@ -103,9 +103,9 @@
     function load_form_data(data) {
         var json = prepare_json(data.external_tool.config);
 
-        $('#et-id-input').val(data.external_tool.id);
+        $('#et-id-input').val(data.external_tool.canvas_id);
         $('#et-account-input').val(data.external_tool.account_id);
-        if (data.external_tool.id && data.external_tool.account_id) {
+        if (data.external_tool.canvas_id && data.external_tool.account_id) {
             $('#et-account-input').prop('disabled', true);
         } else {
             $('#et-account-input').prop('disabled', false);
@@ -129,7 +129,7 @@
         var tool_id = $(this).attr('data-tool-id');
         open_editor('Clone an External Tool');
         load_external_tool(tool_id, function (data) {
-            data.external_tool.id = '';
+            data.external_tool.canvas_id = '';
             data.external_tool.config.id = '';
             load_form_data(data);
         });
