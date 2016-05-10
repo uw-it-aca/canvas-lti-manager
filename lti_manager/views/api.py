@@ -22,10 +22,10 @@ class ExternalToolView(RESTDispatch):
         PUT returns 200.
     """
     def GET(self, request, **kwargs):
-        tool_id = kwargs['tool_id']
+        canvas_id = kwargs['canvas_id']
         read_only = False if can_manage_external_tools() else True
         try:
-            external_tool = ExternalTool.objects.get(id=tool_id)
+            external_tool = ExternalTool.objects.get(canvas_id=canvas_id)
             data = external_tool.json_data()
             data['read_only'] = read_only
 
@@ -36,7 +36,7 @@ class ExternalToolView(RESTDispatch):
 
         except ExternalTool.DoesNotExist:
             return self.json_response(
-                '{"error":"external tool %s not found"}' % tool_id,
+                '{"error":"external tool %s not found"}' % canvas_id,
                 status=404)
         except BLTIKeyStore.DoesNotExist:
             pass
@@ -48,7 +48,7 @@ class ExternalToolView(RESTDispatch):
         if not can_manage_external_tools():
             return self.json_response('{"error":"Unauthorized"}', status=401)
 
-        tool_id = kwargs['tool_id']
+        canvas_id = kwargs['canvas_id']
         try:
             json_data = json.loads(request.body).get('external_tool', {})
             self.validate(json_data)
@@ -57,18 +57,18 @@ class ExternalToolView(RESTDispatch):
             return self.json_response('{"error": "%s"}' % ex, status=400)
 
         try:
-            external_tool = ExternalTool.objects.get(id=tool_id)
+            external_tool = ExternalTool.objects.get(canvas_id=canvas_id)
             curr_data = external_tool.json_data()
             keystore = BLTIKeyStore.objects.get(
                 consumer_key=curr_data['consumer_key'])
         except ExternalTool.DoesNotExist:
             return self.json_response(
-                '{"error":"external_tool %s not found"}' % tool_id,
+                '{"error":"external_tool %s not found"}' % canvas_id,
                 status=404)
         except BLTIKeyStore.DoesNotExist:
             keystore = BLTIKeyStore()
 
-        # PUT does not update account_id
+        # PUT does not update canvas_id or account_id
         external_tool.config = json.dumps(json_data['config'])
         external_tool.changed_by = UserService().get_original_user()
         external_tool.changed_date = datetime.utcnow().replace(tzinfo=utc)
@@ -95,7 +95,7 @@ class ExternalToolView(RESTDispatch):
                 keystore.save()
 
             logger.info('%s updated External Tool "%s"' % (
-                external_tool.changed_by, external_tool.id))
+                external_tool.changed_by, external_tool.canvas_id))
 
         except DataFailureException as err:
             return self.json_response(
@@ -119,6 +119,14 @@ class ExternalToolView(RESTDispatch):
         canvas_id = json_data['config'].get('id')
 
         try:
+            external_tool = ExternalTool.objects.get(canvas_id=canvas_id)
+            return self.json_response(
+                '{"error": "External tool %s already exists"}' % ex,
+                status=400)
+        except ExternalTool.DoesNotExist:
+            pass
+
+        try:
             account = ExternalToolAccount.objects.get(account_id=account_id)
         except ExternalToolAccount.DoesNotExist:
             account = ExternalToolAccount(account_id=account_id)
@@ -130,7 +138,7 @@ class ExternalToolView(RESTDispatch):
                 pass
             account.save()
 
-        external_tool = ExternalTool()
+        external_tool = ExternalTool(canvas_id=canvas_id)
         external_tool.account = account
         external_tool.config = json.dumps(json_data['config'])
         external_tool.changed_by = UserService().get_original_user()
@@ -165,14 +173,14 @@ class ExternalToolView(RESTDispatch):
                     account_id, json_data['config'])
 
                 logger.info('%s updated External Tool "%s"' % (
-                    external_tool.changed_by, external_tool.id))
+                    external_tool.changed_by, external_tool.canvas_id))
 
             else:
                 new_config = ExternalTools().update_external_tool_in_account(
                     account_id, canvas_id, json_data['config'])
 
                 logger.info('%s created External Tool "%s"' % (
-                    external_tool.changed_by, external_tool.id))
+                    external_tool.changed_by, external_tool.canvas_id))
 
             external_tool.config = json.dumps(new_config)
             external_tool.provisioned_date = datetime.utcnow().replace(
@@ -190,16 +198,17 @@ class ExternalToolView(RESTDispatch):
         if not can_manage_external_tools():
             return self.json_response('{"error":"Unauthorized"}', status=401)
 
-        tool_id = kwargs['tool_id']
+        canvas_id = kwargs['canvas_id']
         try:
-            external_tool = ExternalTool.objects.get(id=tool_id)
+            external_tool = ExternalTool.objects.get(canvas_id=canvas_id)
             curr_data = external_tool.json_data()
             keystore = BLTIKeyStore.objects.get(
                 consumer_key=curr_data['consumer_key'])
 
         except ExternalTool.DoesNotExist:
             return self.json_response(
-                '{"error":"external_tool %s not found"}' % tool_id, status=404)
+                '{"error":"external_tool %s not found"}' % canvas_id,
+                status=404)
         except BLTIKeyStore.DoesNotExist:
             keystore = None
 
@@ -211,7 +220,7 @@ class ExternalToolView(RESTDispatch):
                 keystore.delete()
 
             logger.info('%s deleted ExternalTool "%s"' % (
-                external_tool.changed_by, external_tool.id))
+                external_tool.changed_by, external_tool.canvas_id))
 
         except DataFailureException as err:
             return self.json_response(
@@ -221,7 +230,6 @@ class ExternalToolView(RESTDispatch):
             'external_tool': external_tool.json_data()}))
 
     def validate(self, json_data):
-        re_canvas_id = re.compile(r"^\d+$")
         account_id = json_data.get('account_id', None)
         if account_id is None or not len(account_id):
             raise Exception('Subaccount ID is required')
