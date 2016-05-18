@@ -171,15 +171,16 @@ class ExternalToolView(RESTDispatch):
             if not canvas_id:
                 new_config = ExternalTools().create_external_tool_in_account(
                     account_id, json_data['config'])
+                external_tool.canvas_id = new_config.get('id')
 
-                logger.info('%s updated External Tool "%s"' % (
+                logger.info('%s created External Tool "%s"' % (
                     external_tool.changed_by, external_tool.canvas_id))
 
             else:
                 new_config = ExternalTools().update_external_tool_in_account(
                     account_id, canvas_id, json_data['config'])
 
-                logger.info('%s created External Tool "%s"' % (
+                logger.info('%s updated External Tool "%s"' % (
                     external_tool.changed_by, external_tool.canvas_id))
 
             external_tool.config = json.dumps(new_config)
