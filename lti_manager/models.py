@@ -12,6 +12,12 @@ class ExternalToolAccount(models.Model):
     name = models.CharField(max_length=250, null=True)
 
 
+class ExternalToolManager(models.Manager):
+    def get_by_hostname(self, hostname):
+        return super(ExternalToolManager, self).get_query_set().filter(
+            config__contains=hostname)
+
+
 class ExternalTool(models.Model):
     PRIVACY_ANONYMOUS = 'anonymous'
     PRIVACY_NAMEONLY = 'name_only'
@@ -32,6 +38,8 @@ class ExternalTool(models.Model):
     changed_by = models.CharField(max_length=32)
     changed_date = models.DateTimeField()
     provisioned_date = models.DateTimeField(null=True)
+
+    objects = ExternalToolManager()
 
     def generate_shared_secret(self):
         return ''.join(random.SystemRandom().choice(
