@@ -87,6 +87,7 @@ class ExternalToolView(RESTDispatch):
                 external_tool.account.account_id, json_data['config']['id'],
                 json_data['config'])
 
+            external_tool.canvas_id = new_config.get('id')
             external_tool.config = json.dumps(new_config)
             external_tool.provisioned_date = datetime.utcnow().replace(
                 tzinfo=utc)
@@ -99,7 +100,7 @@ class ExternalToolView(RESTDispatch):
 
         except DataFailureException as err:
             return self.json_response(
-                '{"error":"%s: $s"}' % (err.status, err.msg), status=500)
+                '{"error":"%s: %s"}' % (err.status, err.msg), status=500)
 
         return self.json_response(json.dumps({
             'external_tool': external_tool.json_data()}))
@@ -172,16 +173,17 @@ class ExternalToolView(RESTDispatch):
                 new_config = ExternalTools().create_external_tool_in_account(
                     account_id, json_data['config'])
 
-                logger.info('%s updated External Tool "%s"' % (
-                    external_tool.changed_by, external_tool.canvas_id))
+                logger.info('%s created External Tool "%s"' % (
+                    external_tool.changed_by, new_config.get('id')))
 
             else:
                 new_config = ExternalTools().update_external_tool_in_account(
                     account_id, canvas_id, json_data['config'])
 
-                logger.info('%s created External Tool "%s"' % (
-                    external_tool.changed_by, external_tool.canvas_id))
+                logger.info('%s updated External Tool "%s"' % (
+                    external_tool.changed_by, new_config.get('id')))
 
+            external_tool.canvas_id = new_config.get('id')
             external_tool.config = json.dumps(new_config)
             external_tool.provisioned_date = datetime.utcnow().replace(
                 tzinfo=utc)
