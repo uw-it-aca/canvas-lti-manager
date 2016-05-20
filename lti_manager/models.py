@@ -34,7 +34,7 @@ class ExternalTool(models.Model):
 
     account = models.ForeignKey(ExternalToolAccount)
     canvas_id = models.CharField(max_length=20, unique=True)
-    config = models.CharField(max_length=2000)
+    config = models.TextField()
     changed_by = models.CharField(max_length=32)
     changed_date = models.DateTimeField()
     provisioned_date = models.DateTimeField(null=True)
@@ -46,7 +46,11 @@ class ExternalTool(models.Model):
             string.ascii_uppercase + string.digits) for _ in range(32))
 
     def json_data(self):
-        config = json.loads(self.config)
+        try:
+            config = json.loads(self.config)
+        except Exception as err:
+            config = {'name': 'Error', 'error': str(err)}
+
         return {
             'id': self.pk,
             'account_id': self.account.account_id,
