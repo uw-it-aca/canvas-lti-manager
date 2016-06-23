@@ -20,8 +20,5 @@ def ManageExternalTools(request, template='lti_manager/external_tools.html'):
             user, getattr(settings, 'CANVAS_MANAGER_ADMIN_GROUP', '')):
         return HttpResponseRedirect('/')
 
-    params = {
-        'read_only': False if can_manage_external_tools() else True,
-        'canvas_host': settings.RESTCLIENTS_CANVAS_HOST
-    }
+    params = {'read_only': False if can_manage_external_tools() else True}
     return render_to_response(template, params, RequestContext(request))
