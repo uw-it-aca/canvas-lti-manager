@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.utils.log import getLogger
 from lti_manager.models import ExternalTool, ExternalToolAccount
 from lti_manager.views import can_manage_external_tools
@@ -261,6 +262,8 @@ class ExternalToolListView(RESTDispatch):
         for external_tool in ExternalTool.objects.all():
             data = external_tool.json_data()
             data['read_only'] = read_only
+            data['account_url'] = "%s/accounts/%s" % (
+                settings.RESTCLIENTS_CANVAS_HOST, data['account_id'])
             del data['config']
             external_tools.append(data)
 
