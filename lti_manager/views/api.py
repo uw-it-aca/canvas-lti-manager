@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.utils.log import getLogger
+from logging import getLogger
 from lti_manager.models import ExternalTool, ExternalToolAccount
 from lti_manager.views import can_manage_external_tools
 from sis_provisioner.views.rest_dispatch import RESTDispatch
