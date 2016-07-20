@@ -14,7 +14,7 @@ class ExternalToolAccount(models.Model):
 
 class ExternalToolManager(models.Manager):
     def get_by_hostname(self, hostname):
-        return super(ExternalToolManager, self).get_query_set().filter(
+        return super(ExternalToolManager, self).get_queryset().filter(
             config__contains=hostname)
 
 
