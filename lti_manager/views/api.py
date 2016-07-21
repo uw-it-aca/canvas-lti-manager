@@ -218,16 +218,19 @@ class ExternalToolView(RESTDispatch):
         try:
             ExternalTools().delete_external_tool_in_account(
                 curr_data['account_id'], curr_data['config']['id'])
-            external_tool.delete()
-            if keystore is not None:
-                keystore.delete()
-
-            logger.info('%s deleted ExternalTool "%s"' % (
-                external_tool.changed_by, external_tool.canvas_id))
-
         except DataFailureException as err:
-            return self.json_response(
-                '{"error":"%s: $s"}' % (err.status, err.msg), status=500)
+            if err.status == 404:
+                pass
+            else:
+                return self.json_response(
+                    '{"error":"%s: %s"}' % (err.status, err.msg), status=500)
+
+        external_tool.delete()
+        if keystore is not None:
+            keystore.delete()
+
+        logger.info('%s deleted ExternalTool "%s"' % (
+            external_tool.changed_by, external_tool.canvas_id))
 
         return self.json_response(json.dumps({
             'external_tool': external_tool.json_data()}))
