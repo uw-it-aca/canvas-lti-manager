@@ -1,0 +1,20 @@
+sudo: false
+language: python
+python:
+  - "2.7"
+before_install:
+  - cp travis-ci/test_requirements.txt requirements.txt
+install: pip install -r requirements.txt
+before_script:
+  - pip install coverage
+  - pip install python-coveralls
+  - pip install pep8
+  - npm install jshint
+  - cp travis-ci/manage.py manage.py
+script:
+  - pep8 lti_manager/ --exclude=migrations
+  - jshint lti_manager/static/lti_manager/js/ --verbose
+  - coverage run --source=lti_manager/ manage.py test lti_manager
+after_script:
+  - coveralls
+notifications:

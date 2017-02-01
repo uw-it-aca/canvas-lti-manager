@@ -46,4 +46,4 @@ LTIConfig = {
         'selection_height': 50,
         'icon_url': ''
     }
-}
+};
