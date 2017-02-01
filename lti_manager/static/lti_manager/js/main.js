@@ -13,7 +13,7 @@
     });
 
     Handlebars.registerHelper('format_date', function (dt) {
-        return (dt !== null) ? moment(dt).format('MM/DD/YYYY h:mm a') : ''; 
+        return (dt !== null) ? moment(dt).format('MM/DD/YYYY h:mm a') : '';
     });
 
     function draw_error(xhr) {
@@ -69,6 +69,7 @@
     }
 
     function delete_external_tool() {
+        /*jshint validthis: true */
         var tool_id = $(this).attr('data-tool-id');
         if (confirm('Really delete this external tool?')) {
             $.ajax({
@@ -126,6 +127,7 @@
     }
 
     function load_clone_external_tool() {
+        /*jshint validthis: true */
         var tool_id = $(this).attr('data-tool-id');
         open_editor('Clone an External Tool');
         load_external_tool(tool_id, function (data) {
@@ -136,6 +138,7 @@
     }
 
     function load_edit_external_tool() {
+        /*jshint validthis: true */
         var tool_id = $(this).attr('data-tool-id');
         open_editor('Edit an External Tool');
         load_external_tool(tool_id, load_form_data);
